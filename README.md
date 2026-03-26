@@ -12,8 +12,8 @@ A simple Linux networking lab that simulates two isolated networks connected thr
 
 ## Files
 
-- simulation.sh: setup, test, and cleanup automation
-- Solution.md: step-by-step documentation and details
+- [simulation.sh](./simulation.sh): setup, test, and cleanup automation
+- [Solution.md](./Solution.md): step-by-step documentation and details
 
 ## Prerequisites
 
