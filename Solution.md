@@ -6,7 +6,7 @@ This project demonstrates how to simulate two isolated networks connected via a 
 
 ## Network Diagram
 
-![Network Diagram](./network-diagram.png)
+![Network Diagram](./images/network-diagram.png)
 
 ## IP Addressing Scheme
 
@@ -22,13 +22,13 @@ This project demonstrates how to simulate two isolated networks connected via a 
 1. ns1:
 
     ```sh
-    default via 10.0.0.1
+    default via 10.0.0.21
     ```
 
 2. ns2:
 
     ```sh
-    default via 11.0.0.1
+    default via 11.0.0.21
     ```
 
 3. router-ns:
@@ -211,9 +211,9 @@ sudo ip netns exec router-ns ip address add 11.0.0.21/24 dev veth-r1
 Check route tables:
 
 ```sh
-sudo ip netns exec ns1 route
-sudo ip netns exec ns2 route
-sudo ip netns exec router-ns route
+sudo ip netns exec ns1 ip route show
+sudo ip netns exec ns2 ip route show
+sudo ip netns exec router-ns ip route show
 ```
 
 ## Step 7: Enable Routing
@@ -232,18 +232,29 @@ sudo iptables --append FORWARD --in-interface br1 --jump ACCEPT
 sudo iptables --append FORWARD --out-interface br1 --jump ACCEPT
 ```
 
+```sh
+echo "Setting up iptables rules in router-ns for forwarding between veth interfaces..."
+sudo ip netns exec router-ns iptables --append FORWARD --in-interface veth-r0 --jump ACCEPT
+sudo ip netns exec router-ns iptables --append FORWARD --out-interface veth-r0 --jump ACCEPT
+
+sudo ip netns exec router-ns iptables --append FORWARD --in-interface veth-r1 --jump ACCEPT
+sudo ip netns exec router-ns iptables --append FORWARD --out-interface veth-r1 --jump ACCEPT
+```
+
 ## Step 9: Test Connectivity
+
+### Test connectivity by pinging from ns to router and from ns to ns
 
 1. ns1 -> router
 
     ```sh
-    sudo ip netns exec ns1 ping 10.0.0.1
+    sudo ip netns exec ns1 ping -c 3 10.0.0.21
     ```
 
 2. ns2 -> router
 
     ```sh
-    sudo ip netns exec ns2 ping 11.0.0.1
+    sudo ip netns exec ns2 ping -c 3 11.0.0.21
     ```
 
 3. ns1 -> ns2:
@@ -258,11 +269,17 @@ sudo iptables --append FORWARD --out-interface br1 --jump ACCEPT
     sudo ip netns exec ns2 ping -c 3 10.0.0.11
     ```
 
+### Result
+
+![Namespace to router connection](./images/output-1.png)
+![Namespace to namespace connection](./images/output-2.png)
+
 **Expected Results:**
 
-- ns1 can reach router
-- ns2 can reach router
-- ns1 can reach ns2
+- ns1 can reach router - yes
+- ns2 can reach router - yes
+- ns1 can reach ns2 - yes
+- ns2 can reach ns1 - yes
 
 ## Step 10: Cleanup
 
